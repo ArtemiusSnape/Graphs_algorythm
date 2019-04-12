@@ -1,72 +1,100 @@
-#include <iostream>
 #include <fstream>
-#include<map>
-#include<set>
 #include <vector>
-#include <queue>
-#include<iomanip>
+#include<queue>
 using namespace std;
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+struct dvizh {
+	int x, y;
+
+};
+
 
 int main()
 {
-
-	ifstream fin("input.txt");
-	ofstream fout("output.txt");
+	
 
 	int n, m;
-
 	fin >> n >> m;
-	if (m == 0 || n == 1)
-	{
-		fout << 0;
-		return 0;
-	}
-	int x1,x2,ves;
-	vector<map<int, int>>G(n);
-	while (fin >> x1)
-	{
-		fin >> x2 >> ves;
-		if (x1 == x2)
-			continue;
 
-		auto it = G[x1 - 1].find(x2 - 1);
-		if (it == G[x1 - 1].end())
+	vector<vector<int>>G(n);
+	for (int i = 0; i < n; i++)
+		G[i].resize(m);
+	int i;
+	int k = 0, e = 0;
+	while (fin >> i)
+	{
+		G[k][e] = i;
+		e++;
+		if (e == m)
 		{
-			G[x1 - 1].insert(make_pair(x2 - 1, ves));
-			G[x2 - 1].insert(make_pair(x1 - 1, ves));
+			k++;
+			e = 0;
 		}
-		else
+	}
+
+	dvizh hod[4] = {
+		{0,-1},{-1,0},{0,1},{1,0}
+	};
+
+
+	vector<vector<char>>used(n);
+	for (int j = 0; j < n; j++)
+		used[j].resize(m);
+
+	int answer = 0;
+
+	for (int j = 0; j < n; j++)
+	{
+		for (int r = 0; r < m; r++)
 		{
-			if ((*it).second > ves)
+			if (G[j][r] != -1)
 			{
-				(*it).second = ves;
-				auto it1 = G[x2 - 1].find(x1 - 1);
-				(*it1).second = ves;
-			}
-		}
-	
-	}
-	unsigned int INF = 4000000000;
-	vector<unsigned int> d(n, INF);
-	d[0] = 0;
-	
-	set < pair<unsigned int, unsigned int> > q;
-	q.insert(make_pair(d[0], 0));
-	while (!q.empty()) 
-	{
-		unsigned int v = q.begin()->second;
-		q.erase(q.begin());
+				if (!used[j][r])
+				{
+					answer++;
+					queue<dvizh>q;
+					dvizh start;
+					start.x = j;
+					start.y = r;
+					q.push(start);
+					while (!q.empty())
+					{
+						dvizh U = q.front();
+						q.pop();
+						for (int i = 0; i < 4; i++)
+						{
+							dvizh pt;
+							pt.x = U.x + hod[i].x;
+							if (pt.x > n - 1 || pt.x < 0)
+								continue;
+							pt.y = U.y + hod[i].y;
+							if (pt.y > m - 1 || pt.y < 0)
+								continue;
 
-		for (auto j = G[v].begin(); j != G[v].end(); ++j) {
-			int to = (*j).first;
-			unsigned int	len = (*j).second;
-			if (d[v] + len < d[to]) {
-				q.erase(make_pair(d[to], to));
-				d[to] = d[v] + len;
-				q.insert(make_pair(d[to], to));
+							if (G[pt.x][pt.y] == -1)
+							{
+								used[pt.x][pt.y] = true;
+								continue;
+							}
+
+							if (!used[pt.x][pt.y])
+							{
+								used[pt.x][pt.y] = true;
+								q.push(pt);
+
+							}
+						}
+					}
+				}
 			}
 		}
+
 	}
-	fout << setprecision(25) << d[n - 1];
+
+	fout << answer;
+
 	return 0;
 }
